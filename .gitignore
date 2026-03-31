@@ -1,0 +1,120 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+.Python
+wheels/
+*.whl
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files
+*.csv
+*.tsv
+*.parquet
+*.avro
+*.orc
+*.json
+*.jsonl
+*.ndjson
+*.xlsx
+*.xls
+*.db
+*.sqlite
+*.sqlite3
+data/raw/
+data/processed/
+data/interim/
+data/external/
+
+# Logs
+*.log
+logs/
+
+# Environment variables / secrets
+.env
+.env.*
+*.env
+secrets/
+credentials/
+*.pem
+*.key
+*.crt
+config/local_*.yaml
+config/local_*.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform (if used for infra)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# dbt
+target/
+dbt_packages/
+profiles.yml
+
+# Airflow
+airflow.db
+airflow.cfg
+webserver_config.py
+logs/
+standalone_admin_password.txt
+
+# Spark
+derby.log
+metastore_db/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
