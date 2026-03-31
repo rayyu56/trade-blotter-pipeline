@@ -1,0 +1,13 @@
+ingest:
+  source_type: excel  # excel | csv | database
+  source_path: data/raw/
+
+validate:
+  fail_on_error: true
+
+transform:
+  # transformation settings
+
+store:
+  target_type: database  # database | parquet
+  output_path: data/processed/

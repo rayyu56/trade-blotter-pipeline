@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`trade-blotter-pipeline` is a Python data engineering project for processing trade blotter data (financial trading records). The project is in early setup — populate this file as the architecture takes shape.
+`trade-blotter-pipeline` is a Python data engineering project that ingests, validates, transforms, and stores capital markets trade blotter data.
 
 ## Setup
 
-Document the setup steps here once a package manager and dependencies are chosen (e.g., `pip install -e ".[dev]"`, `uv sync`, or `poetry install`).
+```bash
+pip install -r requirements-dev.txt
+```
 
 ## Common Commands
-
-Add build, lint, test, and run commands here as they are established. For example:
 
 ```bash
 # Run all tests
@@ -21,13 +21,33 @@ pytest
 # Run a single test
 pytest tests/path/to/test_file.py::test_function_name
 
-# Lint
-ruff check .
-
-# Format
-ruff format .
+# Run the pipeline
+python scripts/run_pipeline.py
 ```
 
 ## Architecture
 
-Document the pipeline stages, data flow, and module responsibilities here once the codebase is built out.
+The pipeline follows a linear four-stage flow orchestrated by `src/trade_blotter/pipeline.py`:
+
+```
+ingest → validate → transform → store
+```
+
+| Stage | Module | Responsibility |
+|---|---|---|
+| Ingest | `ingest/loader.py` | Load raw trade data from Excel, CSV, or database into a DataFrame |
+| Validate | `validate/validator.py` | Enforce schema and business rules; reject or flag bad records |
+| Transform | `transform/transformer.py` | Normalize fields, compute derived values, aggregate |
+| Store | `store/writer.py` | Write output to a database or Parquet files |
+
+**Supporting modules:**
+- `models/trade.py` — data models and schemas for trade records
+- `utils/logger.py` — shared logging configuration
+- `config/pipeline.yaml` — runtime configuration (source type, paths, target)
+
+**Data directories** (not committed, only `.gitkeep` placeholders):
+- `data/raw/` — source files dropped here for ingestion
+- `data/interim/` — intermediate outputs between stages
+- `data/processed/` — final output
+
+**Tests** mirror the source layout under `tests/` with one subdirectory per pipeline stage.
