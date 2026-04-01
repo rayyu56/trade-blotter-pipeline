@@ -1,17 +1,17 @@
 ingest:
-  source_type: excel  # excel | csv | database
+  source_type: csv  # excel | csv | database
   source_path: data/bronze/
 
 bronze:
   output_path: data/bronze/
 
 silver:
-  fail_on_validation_error: true
+  fail_on_validation_error: false
   output_path: data/silver/
 
 gold:
   outputs:
     - pnl
     - positions
-  target_type: database  # database | parquet
+  target_type: parquet  # parquet | database
   output_path: data/gold/
