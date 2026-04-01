@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`trade-blotter-pipeline` is a Python data engineering project that ingests, validates, transforms, and stores capital markets trade blotter data.
+`trade-blotter-pipeline` is a Python data engineering project that processes capital markets trade blotter data using a **medallion architecture** (bronze → silver → gold).
 
 ## Setup
 
@@ -19,7 +19,7 @@ pip install -r requirements-dev.txt
 pytest
 
 # Run a single test
-pytest tests/path/to/test_file.py::test_function_name
+pytest tests/silver/test_validator.py::test_missing_trade_id
 
 # Run the pipeline
 python scripts/run_pipeline.py
@@ -27,27 +27,26 @@ python scripts/run_pipeline.py
 
 ## Architecture
 
-The pipeline follows a linear four-stage flow orchestrated by `src/trade_blotter/pipeline.py`:
+The pipeline follows the medallion pattern orchestrated by `src/trade_blotter/pipeline.py`:
 
 ```
-ingest → validate → transform → store
+bronze → silver → gold
 ```
 
-| Stage | Module | Responsibility |
+| Layer | Modules | Responsibility |
 |---|---|---|
-| Ingest | `ingest/loader.py` | Load raw trade data from Excel, CSV, or database into a DataFrame |
-| Validate | `validate/validator.py` | Enforce schema and business rules; reject or flag bad records |
-| Transform | `transform/transformer.py` | Normalize fields, compute derived values, aggregate |
-| Store | `store/writer.py` | Write output to a database or Parquet files |
+| **Bronze** | `bronze/loader.py` | Ingest raw data as-is from Excel, CSV, or database into `data/bronze/` — no transformations |
+| **Silver** | `silver/validator.py`, `silver/cleaner.py` | Validate schema and business rules; normalize fields, types, and identifiers into `data/silver/` |
+| **Gold** | `gold/pnl.py`, `gold/positions.py`, `gold/writer.py` | Aggregate clean silver data into business-ready outputs (P&L, positions) in `data/gold/` |
 
 **Supporting modules:**
-- `models/trade.py` — data models and schemas for trade records
+- `models/trade.py` — trade record schemas shared across layers
 - `utils/logger.py` — shared logging configuration
-- `config/pipeline.yaml` — runtime configuration (source type, paths, target)
+- `config/pipeline.yaml` — runtime configuration (source type, paths, gold outputs)
 
-**Data directories** (not committed, only `.gitkeep` placeholders):
-- `data/raw/` — source files dropped here for ingestion
-- `data/interim/` — intermediate outputs between stages
-- `data/processed/` — final output
+**Data directories** (not committed — `.gitkeep` placeholders only):
+- `data/bronze/` — raw source data, preserved as ingested
+- `data/silver/` — validated and cleaned trades
+- `data/gold/` — aggregated P&L and position outputs
 
-**Tests** mirror the source layout under `tests/` with one subdirectory per pipeline stage.
+**Tests** mirror the source layout: `tests/bronze/`, `tests/silver/`, `tests/gold/`.
