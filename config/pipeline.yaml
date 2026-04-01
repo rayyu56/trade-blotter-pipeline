@@ -1,13 +1,17 @@
 ingest:
   source_type: excel  # excel | csv | database
-  source_path: data/raw/
+  source_path: data/bronze/
 
-validate:
-  fail_on_error: true
+bronze:
+  output_path: data/bronze/
 
-transform:
-  # transformation settings
+silver:
+  fail_on_validation_error: true
+  output_path: data/silver/
 
-store:
+gold:
+  outputs:
+    - pnl
+    - positions
   target_type: database  # database | parquet
-  output_path: data/processed/
+  output_path: data/gold/
