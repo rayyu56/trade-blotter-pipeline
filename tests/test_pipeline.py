@@ -3,6 +3,7 @@
 import textwrap
 from pathlib import Path
 
+import pandas as pd
 import pytest
 import yaml
 
@@ -49,6 +50,15 @@ def _write_config(tmp_path: Path, source_path: Path, fail_on_error: bool = False
     config_path = tmp_path / "pipeline.yaml"
     config_path.write_text(yaml.dump(cfg))
     return config_path
+
+
+def _silver_cfg(tmp_path: Path, fail_on_error: bool = False) -> dict:
+    return {
+        "silver": {
+            "fail_on_validation_error": fail_on_error,
+            "output_path": str(tmp_path / "silver"),
+        }
+    }
 
 
 @pytest.fixture
@@ -109,27 +119,63 @@ class TestRunBronze:
 # ---------------------------------------------------------------------------
 
 class TestRunSilver:
-    def test_returns_validation_result_and_dataframe(self, clean_csv):
+    def test_returns_three_tuple(self, clean_csv, tmp_path):
         from trade_blotter.bronze.loader import load_csv
         bronze_df = load_csv(clean_csv).dataframe
-        val_result, silver_df = run_silver(bronze_df, {})
+        result = run_silver(bronze_df, _silver_cfg(tmp_path))
+        assert len(result) == 3
+
+    def test_valid_count_and_dataframe(self, clean_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(clean_csv).dataframe
+        val_result, silver_df, _ = run_silver(bronze_df, _silver_cfg(tmp_path))
         assert val_result.valid_count == 3
         assert len(silver_df) == 3
 
-    def test_exits_on_rejection_when_fail_on_error_true(self, dirty_csv):
+    def test_exits_on_rejection_when_fail_on_error_true(self, dirty_csv, tmp_path):
         from trade_blotter.bronze.loader import load_csv
         bronze_df = load_csv(dirty_csv).dataframe
-        cfg = {"silver": {"fail_on_validation_error": True}}
         with pytest.raises(SystemExit):
-            run_silver(bronze_df, cfg)
+            run_silver(bronze_df, _silver_cfg(tmp_path, fail_on_error=True))
 
-    def test_continues_when_fail_on_error_false(self, dirty_csv):
+    def test_continues_when_fail_on_error_false(self, dirty_csv, tmp_path):
         from trade_blotter.bronze.loader import load_csv
         bronze_df = load_csv(dirty_csv).dataframe
-        cfg = {"silver": {"fail_on_validation_error": False}}
-        val_result, silver_df = run_silver(bronze_df, cfg)
+        val_result, silver_df, _ = run_silver(bronze_df, _silver_cfg(tmp_path))
         assert val_result.rejected_count == 1
         assert val_result.valid_count == 1
+
+    def test_writes_valid_trades_parquet(self, clean_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(clean_csv).dataframe
+        _, _, paths = run_silver(bronze_df, _silver_cfg(tmp_path))
+        assert paths["valid_trades"].exists()
+
+    def test_writes_rejected_trades_parquet(self, dirty_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(dirty_csv).dataframe
+        _, _, paths = run_silver(bronze_df, _silver_cfg(tmp_path))
+        assert paths["rejected_trades"].exists()
+
+    def test_writes_warnings_parquet(self, clean_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(clean_csv).dataframe
+        _, _, paths = run_silver(bronze_df, _silver_cfg(tmp_path))
+        assert paths["warnings"].exists()
+
+    def test_valid_parquet_row_count_matches(self, clean_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(clean_csv).dataframe
+        val_result, _, paths = run_silver(bronze_df, _silver_cfg(tmp_path))
+        loaded = pd.read_parquet(paths["valid_trades"])
+        assert len(loaded) == val_result.valid_count
+
+    def test_rejected_parquet_preserves_validation_issues(self, dirty_csv, tmp_path):
+        from trade_blotter.bronze.loader import load_csv
+        bronze_df = load_csv(dirty_csv).dataframe
+        _, _, paths = run_silver(bronze_df, _silver_cfg(tmp_path))
+        loaded = pd.read_parquet(paths["rejected_trades"])
+        assert "_validation_issues" in loaded.columns
 
 
 # ---------------------------------------------------------------------------
@@ -219,3 +265,22 @@ class TestRunEndToEnd:
         result = run(config_path)
         assert result.silver_rejected_count == 1
         assert result.silver_valid_count == 1
+
+    def test_silver_paths_in_result(self, clean_csv, tmp_path):
+        config_path = _write_config(tmp_path, clean_csv.parent)
+        result = run(config_path)
+        assert "valid_trades" in result.silver_paths
+        assert "rejected_trades" in result.silver_paths
+        assert "warnings" in result.silver_paths
+
+    def test_silver_parquet_files_exist_on_disk(self, clean_csv, tmp_path):
+        config_path = _write_config(tmp_path, clean_csv.parent)
+        result = run(config_path)
+        for path in result.silver_paths.values():
+            assert path.exists()
+
+    def test_valid_trades_parquet_matches_silver_valid_count(self, clean_csv, tmp_path):
+        config_path = _write_config(tmp_path, clean_csv.parent)
+        result = run(config_path)
+        loaded = pd.read_parquet(result.silver_paths["valid_trades"])
+        assert len(loaded) == result.silver_valid_count
