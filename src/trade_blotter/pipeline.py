@@ -45,6 +45,7 @@ from trade_blotter.gold.writer import write_gold_outputs
 from trade_blotter.models.trade import ValidationResult
 from trade_blotter.silver.cleaner import clean
 from trade_blotter.silver.validator import validate
+from trade_blotter.silver.writer import write_silver_outputs
 from trade_blotter.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -64,6 +65,7 @@ class PipelineResult:
     silver_valid_count: int
     silver_rejected_count: int
     silver_warning_count: int
+    silver_paths: dict[str, Path]        # dataset_name → Parquet path
     gold_datasets: dict[str, int]        # dataset_name → row count
     validation_errors: list[str]
 
@@ -89,7 +91,7 @@ def run(config_path: str | Path = _DEFAULT_CONFIG) -> PipelineResult:
     bronze_df = ingest_result.dataframe
 
     # ── Silver ──────────────────────────────────────────────────────────────
-    validation_result, silver_df = run_silver(bronze_df, cfg)
+    validation_result, silver_df, silver_paths = run_silver(bronze_df, cfg)
 
     # ── Gold ─────────────────────────────────────────────────────────────────
     gold_counts = run_gold(silver_df, cfg)
@@ -100,6 +102,7 @@ def run(config_path: str | Path = _DEFAULT_CONFIG) -> PipelineResult:
         silver_valid_count=validation_result.valid_count,
         silver_rejected_count=validation_result.rejected_count,
         silver_warning_count=validation_result.warning_count,
+        silver_paths=silver_paths,
         gold_datasets=gold_counts,
         validation_errors=validation_result.errors,
     )
@@ -134,14 +137,18 @@ def run_bronze(cfg: dict[str, Any]):
 def run_silver(
     bronze_df: pd.DataFrame,
     cfg: dict[str, Any],
-) -> tuple[ValidationResult, pd.DataFrame]:
-    """Validate and clean a bronze DataFrame.
+) -> tuple[ValidationResult, pd.DataFrame, dict[str, Path]]:
+    """Validate, clean, and persist a bronze DataFrame to data/silver/.
 
-    Returns (ValidationResult, cleaned_silver_df).
+    Writes three Parquet files to silver output_path:
+      valid_trades.parquet, rejected_trades.parquet, warnings.parquet
+
+    Returns (ValidationResult, cleaned_silver_df, silver_paths).
     Exits the process if fail_on_validation_error is true and rows were rejected.
     """
     silver_cfg = cfg.get("silver", {})
     fail_on_error = silver_cfg.get("fail_on_validation_error", True)
+    output_path = Path(silver_cfg.get("output_path", "data/silver/"))
 
     logger.info("[Silver] Validating %d bronze rows", len(bronze_df))
     validation_result = validate(bronze_df)
@@ -157,7 +164,14 @@ def run_silver(
 
     logger.info("[Silver] Cleaning %d valid rows", validation_result.valid_count)
     silver_df = clean(validation_result.valid)
-    return validation_result, silver_df
+
+    silver_paths = write_silver_outputs(
+        valid=silver_df,
+        rejected=validation_result.rejected,
+        warnings=validation_result.warnings,
+        output_dir=output_path,
+    )
+    return validation_result, silver_df, silver_paths
 
 
 def run_gold(
@@ -207,9 +221,12 @@ def _log_summary(result: PipelineResult) -> None:
     logger.info("-- Pipeline Summary ------------------------------------------")
     logger.info("  Source:           %s", result.source)
     logger.info("  Bronze rows:      %d", result.bronze_row_count)
-    logger.info("  Silver valid:     %d", result.silver_valid_count)
-    logger.info("  Silver rejected:  %d", result.silver_rejected_count)
-    logger.info("  Silver warnings:  %d", result.silver_warning_count)
+    logger.info("  Silver valid:     %d  -> %s", result.silver_valid_count,
+                result.silver_paths.get("valid_trades", ""))
+    logger.info("  Silver rejected:  %d  -> %s", result.silver_rejected_count,
+                result.silver_paths.get("rejected_trades", ""))
+    logger.info("  Silver warnings:  %d  -> %s", result.silver_warning_count,
+                result.silver_paths.get("warnings", ""))
     for name, count in result.gold_datasets.items():
         logger.info("  Gold %-20s %d rows", name + ":", count)
     logger.info("-------------------------------------------------------------")
