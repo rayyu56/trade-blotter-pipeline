@@ -41,6 +41,7 @@ from trade_blotter.gold.pnl import (
     compute_trade_pnl,
 )
 from trade_blotter.gold.positions import compute_net_positions, compute_position_snapshot
+from trade_blotter.gold.excel_writer import write_daily_summary, write_excel
 from trade_blotter.gold.writer import write_gold_outputs
 from trade_blotter.models.trade import ValidationResult
 from trade_blotter.silver.cleaner import clean
@@ -198,6 +199,10 @@ def run_gold(
         outputs["position_snapshot"] = compute_position_snapshot(silver_df)
 
     write_gold_outputs(outputs, output_path, fmt=target_type)
+
+    for name, df in outputs.items():
+        write_excel(df, output_path, name)
+    write_daily_summary(outputs, output_path)
 
     return {name: len(df) for name, df in outputs.items()}
 
