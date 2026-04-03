@@ -64,6 +64,8 @@ data/raw/
 data/processed/
 data/interim/
 data/external/
+# Exception: seed/sample files explicitly tracked
+!data/bronze/trades_20260401.csv
 
 # Logs
 *.log

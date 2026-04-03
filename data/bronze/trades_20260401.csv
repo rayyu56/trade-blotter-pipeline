@@ -1,0 +1,26 @@
+trade_id,trade_date,settlement_date,trader,counterparty,asset_class,symbol,side,quantity,price,currency,broker,status
+TRD-001,2026-03-28,2026-04-01,Sarah Chen,Goldman Sachs,Equity,AAPL,Buy,5000,213.45,USD,ITG,Confirmed
+TRD-002,2026-03-28,2026-04-01,James Park,Morgan Stanley,Equity,MSFT,Sell,3000,415.20,USD,Instinet,Confirmed
+TRD-003,2026-03-28,2026-04-01,Sarah Chen,Barclays,Equity,GOOGL,Buy,1200,175.80,USD,BTIG,Confirmed
+TRD-004,2026-03-31,2026-04-02,Marcus Webb,JP Morgan,Equity,JPM,Sell,8000,252.30,USD,Bloomberg,Confirmed
+TRD-005,2026-03-31,2026-04-02,James Park,Deutsche Bank,Equity,GS,Buy,2500,598.10,USD,Liquidnet,Confirmed
+TRD-006,2026-03-31,2026-04-02,Marcus Webb,,Equity,TSLA,Buy,4000,172.65,USD,ITG,Pending
+TRD-007,2026-03-31,2026-04-02,Sarah Chen,UBS,Equity,BAC,Sell,12000,47.85,USD,Instinet,Confirmed
+TRD-001,2026-03-28,2026-04-01,Sarah Chen,Goldman Sachs,Equity,AAPL,Buy,5000,213.45,USD,ITG,Confirmed
+TRD-008,2026-03-28,2026-03-29,Rachel Kim,Citigroup,FX,EUR/USD,Buy,2000000,1.0842,USD,,Confirmed
+TRD-009,2026-03-28,2026-03-29,James Park,Barclays,FX,GBP/USD,Sell,1500000,1.2965,GBP,Bloomberg,Confirmed
+TRD-010,2026-03-31,2026-04-01,Rachel Kim,Deutsche Bank,FX,USD/JPY,Buy,5000000,149.82,JPY,Bloomberg,Confirmed
+TRD-011,2026-03-31,2026-04-01,Marcus Webb,Goldman Sachs,FX,AUD/USD,Sell,3000000,0.6321,USD,Instinet,Confirmed
+TRD-012,2026-03-31,,Rachel Kim,Morgan Stanley,FX,EUR/USD,Buy,1000000,1.0856,USD,ITG,Pending
+TRD-013,2026-03-31,2026-04-01,James Park,UBS,FX,GBP/USD,Sell,2500000,,GBP,Bloomberg,Confirmed
+TRD-014,2026-04-01,2026-04-02,Rachel Kim,Citigroup,FX,USD/JPY,Buy,4000000,150.15,JPY,Liquidnet,Confirmed
+TRD-015,2026-03-28,2026-03-29,David Okafor,Goldman Sachs,Fixed Income,UST 4.25 2028,Buy,10000000,98.75,USD,Bloomberg,Confirmed
+TRD-016,2026-03-28,2026-03-29,David Okafor,JP Morgan,Fixed Income,UST 4.50 2031,Sell,5000000,97.20,USD,Bloomberg,Confirmed
+TRD-017,2026-03-31,2026-04-01,Sarah Chen,Barclays,Fixed Income,AAPL 3.85 2027,Buy,3000000,99.45,USD,Instinet,Confirmed
+TRD-018,2026-03-31,2026-04-01,,Morgan Stanley,Fixed Income,GS 4.00 2029,Sell,2000000,96.80,USD,BTIG,Confirmed
+TRD-019,2026-03-31,2026-04-01,David Okafor,Deutsche Bank,Fixed Income,UST 3.75 2026,Buy,7500000,99.92,USD,Bloomberg,Confirmed
+TRD-020,2026-04-01,2026-04-02,Marcus Webb,UBS,Fixed Income,MS 4.10 2030,sell,1500000,101.25,USD,Liquidnet,Confirmed
+TRD-021,2026-04-01,2026-04-02,David Okafor,Citigroup,Fixed Income,,Buy,4000000,98.30,USD,Bloomberg,Pending
+TRD-022,2026-04-01,2026-04-02,Rachel Kim,Goldman Sachs,Fixed Income,JPM 3.90 2028,Sell,2500000,97.65,USD,ITG,Confirmed
+TRD-023,2026-04-01,2026-04-03,James Park,Morgan Stanley,Equity,NVDA,BUY,2000,875.40,USD,Instinet,Confirmed
+TRD-024,2026-04-01,2026-04-03,Sarah Chen,Barclays,Equity,META,Sell,-500,585.20,USD,BTIG,Confirmed
