@@ -6,8 +6,6 @@
 # so this notebook always reflects the behaviour of the canonical Python code.
 #
 # Cells:
-#   0   Configuration
-#   0.1 Ensure schemas exist
 #   1   Install package from GitHub
 #   2   Bronze  — ingest raw data         (trade_blotter.bronze.loader)
 #   3   Silver  — validate                (trade_blotter.silver.validator)
@@ -34,52 +32,25 @@
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ## 0 · Configuration
+# Configuration — edit before running.
+# Table names use schema.table format (compatible with Community Edition /
+# hive_metastore; no catalog prefix required).
 
-# COMMAND ----------
-
-# All paths and table names are defined here — change these to match your
-# Unity Catalog setup and storage location before running.
-
-# Unity Catalog: catalog that owns the three schemas below
-CATALOG = "main"
-
-# Cloud storage path to the source file (DBFS, ADLS, or S3)
-# e.g. "abfss://container@account.dfs.core.windows.net/trade-blotter/bronze/"
-SOURCE_PATH = "dbfs:/FileStore/trade-blotter/bronze/trades_20260401.csv"
+SOURCE_PATH   = "dbfs:/FileStore/trade-blotter/bronze/trades_20260401.csv"
 SOURCE_FORMAT = "csv"   # "csv" or "excel"
 
-# Schema / database names within the catalog
-BRONZE_SCHEMA = "bronze"
-SILVER_SCHEMA = "silver"
-GOLD_SCHEMA   = "gold"
-
-# Fully-qualified table names
-BRONZE_TRADES          = f"{CATALOG}.{BRONZE_SCHEMA}.trades"
-SILVER_VALID           = f"{CATALOG}.{SILVER_SCHEMA}.trades_valid"
-SILVER_REJECTED        = f"{CATALOG}.{SILVER_SCHEMA}.trades_rejected"
-SILVER_WARNINGS        = f"{CATALOG}.{SILVER_SCHEMA}.trades_warnings"
-GOLD_PNL_BY_SYMBOL     = f"{CATALOG}.{GOLD_SCHEMA}.pnl_by_symbol"
-GOLD_PNL_BY_TRADER     = f"{CATALOG}.{GOLD_SCHEMA}.pnl_by_trader"
-GOLD_PNL_SUMMARY       = f"{CATALOG}.{GOLD_SCHEMA}.pnl_summary"
-GOLD_NET_POSITIONS     = f"{CATALOG}.{GOLD_SCHEMA}.net_positions"
-GOLD_POSITION_SNAPSHOT = f"{CATALOG}.{GOLD_SCHEMA}.position_snapshot"
+BRONZE_TRADES          = "bronze.trades"
+SILVER_VALID           = "silver.trades_valid"
+SILVER_REJECTED        = "silver.trades_rejected"
+SILVER_WARNINGS        = "silver.trades_warnings"
+GOLD_PNL_BY_SYMBOL     = "gold.pnl_by_symbol"
+GOLD_PNL_BY_TRADER     = "gold.pnl_by_trader"
+GOLD_PNL_SUMMARY       = "gold.pnl_summary"
+GOLD_NET_POSITIONS     = "gold.net_positions"
+GOLD_POSITION_SNAPSHOT = "gold.position_snapshot"
 
 # If True, the pipeline aborts when any rows are rejected in the silver layer.
 FAIL_ON_VALIDATION_ERROR = False
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## 0.1 · Ensure schemas exist
-
-# COMMAND ----------
-
-# Create the three schemas if they don't already exist.
-for schema in (BRONZE_SCHEMA, SILVER_SCHEMA, GOLD_SCHEMA):
-    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{schema}")
-    print(f"Schema ready: {CATALOG}.{schema}")
 
 # COMMAND ----------
 
