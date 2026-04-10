@@ -36,7 +36,7 @@
 # Table names use schema.table format (compatible with Community Edition /
 # hive_metastore; no catalog prefix required).
 
-SOURCE_PATH   = "dbfs:/FileStore/trade-blotter/bronze/trades_20260401.csv"
+SOURCE_PATH   = "/Workspace/Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/data/bronze/trades_20260401.csv"
 SOURCE_FORMAT = "csv"   # "csv" or "excel"
 
 BRONZE_TRADES          = "bronze.trades"
