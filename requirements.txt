@@ -3,3 +3,6 @@ sqlalchemy
 openpyxl
 pyarrow
 pyyaml
+databricks-sql-connector
+python-dotenv
+anthropic
