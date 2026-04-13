@@ -24,15 +24,16 @@ def trigger_notebook_run(
 ) -> TriggerResult:
     """Submit a one-time notebook run via ``POST /api/2.1/jobs/runs/submit``.
 
-    If *cluster_id* is empty a new ephemeral job cluster running the default
-    Databricks Runtime is requested automatically.
+    Compute precedence:
+    1. *cluster_id* provided → use existing interactive cluster.
+    2. Otherwise → use serverless compute (no cluster config required).
 
     Args:
-        host: Databricks workspace URL (``https://...azuredatabricks.net``).
+        host: Databricks workspace URL.
         token: Personal access token or service-principal OAuth token.
         notebook_path: Absolute Workspace path to the notebook.
-        cluster_id: Existing interactive cluster ID, or ``""`` / ``None`` to
-            provision a fresh job cluster.
+        cluster_id: Existing interactive cluster ID, or ``""`` / ``None`` for
+            serverless.
         run_name: Display name shown in the Runs UI.
 
     Returns:
@@ -51,12 +52,7 @@ def trigger_notebook_run(
 
     if cluster_id:
         task["existing_cluster_id"] = cluster_id
-    else:
-        task["new_cluster"] = {
-            "spark_version": "13.3.x-scala2.12",
-            "node_type_id": "Standard_DS3_v2",
-            "num_workers": 1,
-        }
+    # else: no compute key → Databricks uses serverless automatically
 
     payload = {"run_name": run_name, "tasks": [task]}
 
