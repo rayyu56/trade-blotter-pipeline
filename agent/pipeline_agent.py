@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-load_dotenv(_REPO_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env", override=True)
 
 from agent.tools.file_monitor import scan_for_new_files          # noqa: E402
 from agent.tools.job_monitor import poll_run                      # noqa: E402
