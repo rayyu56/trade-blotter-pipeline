@@ -1,0 +1,29 @@
+databricks:
+  host: "${DATABRICKS_HOST}"                 # e.g. https://adb-1234567890.azuredatabricks.net
+  token: "${DATABRICKS_TOKEN}"
+  notebook_path: /Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/notebooks/trade_blotter_databricks
+  cluster_id: ""                             # leave empty to use a new ephemeral job cluster
+  sql_http_path: /sql/1.0/warehouses/b57a0403a468e30d
+  catalog: workspace
+  schema: default
+
+pipeline:
+  bronze_source_path: data/bronze/
+  file_pattern: "trades_*.csv"
+  poll_interval_seconds: 15
+  max_poll_attempts: 40                      # 40 × 15 s = 10 min timeout
+
+tables:
+  bronze_trades: bronze_trades
+  silver_valid: silver_valid
+  silver_rejected: silver_rejected
+  silver_warnings: silver_warnings
+  gold_pnl_by_symbol: gold_pnl_by_symbol
+  gold_pnl_by_trader: gold_pnl_by_trader
+  gold_pnl_summary: gold_pnl_summary
+  gold_net_positions: gold_net_positions
+  gold_position_snapshot: gold_position_snapshot
+
+agent:
+  memory_path: agent/memory/run_history.json
+  log_level: INFO
