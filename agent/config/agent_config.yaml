@@ -1,10 +1,10 @@
 databricks:
   host: "${DATABRICKS_HOST}"                 # e.g. https://adb-1234567890.azuredatabricks.net
   token: "${DATABRICKS_TOKEN}"
-  notebook_path: /Workspace/Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/notebooks/trade_blotter_databricks.py
+  notebook_path: /Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/notebooks/trade_blotter_databricks
   cluster_id: ""                             # leave empty to use a new ephemeral job cluster
-  sql_http_path: ""                          # e.g. /sql/1.0/warehouses/abc123  (SQL warehouse HTTP path)
-  catalog: hive_metastore
+  sql_http_path: /sql/1.0/warehouses/b57a0403a468e30d
+  catalog: workspace
   schema: default
 
 pipeline:
