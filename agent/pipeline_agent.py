@@ -31,6 +31,7 @@ sys.path.insert(0, str(_REPO_ROOT))
 load_dotenv(_REPO_ROOT / ".env", override=True)
 
 from agent.tools.file_monitor import scan_for_new_files          # noqa: E402
+from agent.tools.file_uploader import upload_file_to_workspace   # noqa: E402
 from agent.tools.job_monitor import poll_run                      # noqa: E402
 from agent.tools.job_trigger import trigger_notebook_run          # noqa: E402
 from agent.tools.quality_checker import check_table_counts        # noqa: E402
@@ -79,12 +80,13 @@ def run_pipeline_for_file(
 
     Steps
     -----
-    1. Trigger Databricks notebook run.
-    2. Poll until terminal state.
-    3. Run quality checks (table row counts).
-    4. Reconcile bronze vs silver.
-    5. Generate EOD summary via Claude.
-    6. Return the completed run record.
+    1. Upload CSV to Databricks workspace bronze directory.
+    2. Trigger Databricks notebook run.
+    3. Poll until terminal state.
+    4. Run quality checks (table row counts).
+    5. Reconcile bronze vs silver.
+    6. Generate EOD summary via Claude.
+    7. Return the completed run record.
     """
     db_cfg = cfg["databricks"]
     pipeline_cfg = cfg["pipeline"]
@@ -94,6 +96,7 @@ def run_pipeline_for_file(
         "source_file": source_file,
         "triggered_at": _now(),
         "dry_run": dry_run,
+        "workspace_path": None,
         "run_id": None,
         "run_url": None,
         "status": "pending",
@@ -105,13 +108,28 @@ def run_pipeline_for_file(
     }
 
     try:
-        # ---- 1. Trigger -------------------------------------------------------
+        # ---- 1. Upload --------------------------------------------------------
         if dry_run:
-            logger.info("[DRY-RUN] Would trigger notebook for %s", source_file)
+            logger.info("[DRY-RUN] Would upload %s and trigger notebook", source_file)
             record["status"] = "dry_run"
             record["completed_at"] = _now()
             return record
 
+        logger.info("Uploading %s to Databricks workspace …", source_file)
+        upload = upload_file_to_workspace(
+            host=host,
+            token=token,
+            local_path=source_file,
+            workspace_dir=db_cfg["upload_path"],
+        )
+        record["workspace_path"] = upload.workspace_path
+        logger.info(
+            "Uploaded %s bytes → %s",
+            f"{upload.size_bytes:,}",
+            upload.workspace_path,
+        )
+
+        # ---- 2. Trigger -------------------------------------------------------
         logger.info("Triggering notebook for %s …", source_file)
         trigger = trigger_notebook_run(
             host=host,

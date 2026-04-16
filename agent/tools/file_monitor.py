@@ -46,6 +46,11 @@ def scan_for_new_files(
     if memory_file.exists():
         history = json.loads(memory_file.read_text(encoding="utf-8"))
         for run in history:
+            # Only treat a file as processed when it completed a real, successful
+            # run.  dry_run, error, failed, and pending records must not block a
+            # future live or retry run.
+            if run.get("status") != "success":
+                continue
             src = run.get("source_file")
             if src:
                 processed_files.add(os.path.abspath(src))
