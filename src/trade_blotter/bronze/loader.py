@@ -23,7 +23,7 @@ def load_csv(path: str | Path) -> IngestResult:
     """Load a CSV file into a DataFrame without any transformation.
 
     All columns are read as strings to preserve raw values exactly as received.
-    """
+    """ 
     path = Path(path)
     logger.info("Loading CSV: %s", path)
 
