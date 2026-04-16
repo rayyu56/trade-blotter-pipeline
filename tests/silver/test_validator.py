@@ -52,13 +52,14 @@ class TestReturnType:
 # ---------------------------------------------------------------------------
 
 class TestDuplicates:
-    def test_exact_duplicate_row_is_dropped(self):
+    def test_exact_duplicate_row_is_rejected(self):
         row = _make_row()
         result = validate(_df(row, row))
-        # Only one row survives — the exact duplicate is silently dropped before
-        # trade_id deduplication, so we get 1 valid row with no rejection.
+        # First occurrence is valid; the exact duplicate goes to rejected so
+        # every bronze row is accounted for in the reconciler.
         assert result.valid_count == 1
-        assert result.rejected_count == 0
+        assert result.rejected_count == 1
+        assert "exact_duplicate" in result.rejected.iloc[0]["_validation_issues"]
 
     def test_duplicate_trade_id_different_data_is_rejected(self):
         r1 = _make_row(trade_id="TRD-001", price="213.45")

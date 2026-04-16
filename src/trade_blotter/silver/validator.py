@@ -45,7 +45,7 @@ def validate(df: pd.DataFrame) -> ValidationResult:
     df = df.copy()
     df[_REASON_COL] = ""
 
-    df = _drop_exact_duplicates(df)
+    df = _flag_exact_duplicates(df)
     df = _flag_duplicate_trade_ids(df)
     df = _flag_missing_required_fields(df)
     df = _flag_invalid_side(df)
@@ -72,12 +72,20 @@ def validate(df: pd.DataFrame) -> ValidationResult:
 # Rule implementations
 # ---------------------------------------------------------------------------
 
-def _drop_exact_duplicates(df: pd.DataFrame) -> pd.DataFrame:
-    before = len(df)
-    df = df.drop_duplicates()
-    dropped = before - len(df)
-    if dropped:
-        logger.warning("Dropped %d exact duplicate row(s)", dropped)
+def _flag_exact_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    """Flag exact duplicate rows for rejection rather than silently dropping them.
+
+    Keeping duplicates in the rejected set ensures every bronze row is
+    accounted for in silver and the reconciler never sees an unaccounted row.
+    The first occurrence is kept; subsequent exact copies are rejected.
+    """
+    dupes = df.duplicated(keep="first")
+    _append_reason(df, dupes, "REJECT:exact_duplicate")
+    if dupes.any():
+        logger.warning(
+            "Found %d exact duplicate row(s) — flagged for rejection (previously silently dropped)",
+            dupes.sum(),
+        )
     return df
 
 
