@@ -2,6 +2,7 @@ databricks:
   host: "${DATABRICKS_HOST}"                 # e.g. https://adb-1234567890.azuredatabricks.net
   token: "${DATABRICKS_TOKEN}"
   notebook_path: /Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/notebooks/trade_blotter_databricks
+  upload_path: /Users/rayyu56@hotmail.com/trade-blotter-pipeline-repo/data/bronze
   cluster_id: ""                             # leave empty to use a new ephemeral job cluster
   sql_http_path: /sql/1.0/warehouses/b57a0403a468e30d
   catalog: workspace
