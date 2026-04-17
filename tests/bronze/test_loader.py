@@ -86,7 +86,10 @@ class TestLoadCsv:
     def test_file_not_found_raises(self, tmp_path):
         with pytest.raises(FileNotFoundError):
             load_csv(tmp_path / "nonexistent.csv")
-
+    
+    def test_dataframe_cell_value(self, sample_csv):
+        result = load_csv(sample_csv)
+        assert result.dataframe.loc[0, "trader"] == "Sarah Chen"
 
 # ---------------------------------------------------------------------------
 # load_excel
@@ -104,6 +107,10 @@ class TestLoadExcel:
     def test_all_values_are_strings(self, sample_excel):
         result = load_excel(sample_excel)
         assert all(pd.api.types.is_string_dtype(result.dataframe[col]) for col in REQUIRED_COLUMNS)
+    
+    def test_sheet_name_parameter(self, sample_excel):
+        result = load_excel(sample_excel, sheet_name="Sheet1")
+        assert result.row_count == 2
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +144,20 @@ class TestLoadDirectory:
         with pytest.raises(FileNotFoundError):
             load_directory(tmp_path, pattern="*.csv")
 
+    def test_loads_csv_and_excel_files(self, tmp_path, sample_csv, sample_excel):
+        # Copy sample files to tmp_path
+        (tmp_path / "trades.csv").write_text(sample_csv.read_text())
+        (tmp_path / "trades.xlsx").write_bytes(sample_excel.read_bytes())
+
+        result = load_directory(tmp_path, pattern="*.*")
+        assert result.row_count == 4  # 2 from CSV + 2 from Excel
+
+    def test_load_csv2_and_excel2_files(self, tmp_path, sample_csv, sample_excel):
+        #copy sample files to tmp_path with different names
+        (tmp_path/"bobo1.csv").write_text(sample_csv.read_text())
+        (tmp_path/"bobo2.xlsx").write_bytes(sample_excel.read_bytes())
+        result = load_directory(tmp_path, pattern="*bobo*.*")
+        assert result.row_count == 4  # 2 from CSV + 2 from Excel
 
 # ---------------------------------------------------------------------------
 # _check_columns (warning behaviour)
@@ -156,3 +177,16 @@ class TestCheckColumns:
         with caplog.at_level(logging.WARNING):
             _check_columns(df, source="test")
         assert "missing expected columns" not in caplog.text
+    
+    def test_extra_columns(self, caplog):
+        import logging
+        df =  pd.DataFrame([{
+            "trade_id": "T1", "trade_date": "2026-01-01", "settlement_date": "2026-01-03",
+            "trader": "Ray", "counterparty": "GS", "asset_class": "Equity",
+            "symbol": "AAPL", "side": "Buy", "quantity": "100", "price": "10.0",
+            "currency": "USD", "broker": "ITG", "status": "Confirmed",
+            "notes": "extra column here"   # ← the unexpected column
+        }])        
+        with caplog.at_level(logging.INFO):
+                _check_columns(df, source="test_source.csv")
+        assert "extra" in caplog.text
